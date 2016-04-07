@@ -24,15 +24,17 @@ void initialize() {
 }
 
 uint main(void) {
-	uint i, j, k;
+	uint i, j, k = 0;
 
 	char * str = "Jeffery02 - \nhas learned how to get this LCD screen  working!!!\tMaybe...\0";
+	static char temp[5];
+
+	itoa(9999, temp);
 
 	initialize();
 
-	initGFX();
+	initGFX(BLUE);
 
-	fillRect(0, 0, ColMax, RowMax, RGBto16(0, 0, 255));
 
 /*	k = 0;
 	for (i = 0; i < ColMax; i++) {
@@ -42,9 +44,25 @@ uint main(void) {
 	}
 */
 	printStrGFX(0, 0, str, RGBto16(255, 127, 0));
+	printString(" This is a test\n\t\0");
+	setTextColor(RED);
+	printString(temp);
+	setTextColor(WHITE);
+	htoa(0xFE, temp);
+	htoa(0x13, &temp[2]);
+	printString(temp);
+	i = LCD_Cursor;
+	setTextColor(MAGENTA);
 
 	while(1) {
 		PORTB ^= 0x01;
+		fillRect(0, 40, 100, 100, Background_Color);
+		setTextColor(WHITE - Background_Color);
+		Background_Color += 0x0821;
+		LCD_Cursor = (charX*charY)-5;
+		itoa(getADC(0), temp);
+		printString(temp);
+		_delay_ms(10);
 	}
 }
 
@@ -54,7 +72,7 @@ uint main(void) {
 
 
 void itoa(uint j, char* temp) {			// Convert unsigned int into 4 decimal ASCII values
-	uint i;
+	static uint i;
 	for (i = 0; i < 4; i++) {
 		temp[3-i] = (j%10) + 0x30;
 		j /= 10;
@@ -74,7 +92,7 @@ void htoa(char hex, char* str) {		// hex to ascii
 uint getADC(char chan) {
 	ADMUX = chan;		// Select which ADC MUX channel to read
 	_delay_us(100);		// Stabalize ADC MUX output before retrieving value
-	uint j = 0;
+	static uint j = 0;
 	ADCSRA |= (1<<ADSC);	// Start ADC conversion
 	while(!(ADCSRA & (1<<ADIF)))	// Wait for ADC conversion to finish
 	j = ADCL + (ADCH<<8);	// Extract ADC value

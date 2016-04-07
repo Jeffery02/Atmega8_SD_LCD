@@ -1,9 +1,13 @@
 #include "LCD_test.h"
 #include "LCD_GFX.h"
 
+uint LCD_Cursor = 0;
+uint Text_Color = BLACK;
+uint Background_Color = WHITE;
+
 //-------------LCD functions--------------------//
 
-void initGFX() {			// GFX LCD Initialization (failed ILI9340 240x320 LCD from fasttech.com)
+void initGFX(uint color) {		// GFX LCD Initialization and background color
 	_delay_ms(5);
 	PORTD &= ~RST;				// Reset GFX LCD
 	_delay_ms(20);
@@ -118,6 +122,10 @@ void initGFX() {			// GFX LCD Initialization (failed ILI9340 240x320 LCD from fa
 	_delay_ms(120);
 	outGFX(0x29, command);		// Display On
 
+	// Initialize Background
+	fillRect(0, 0, ColMax, RowMax, color);
+	Background_Color = color;
+
 	return;
 }
 
@@ -170,7 +178,7 @@ void setPixel(uint x, uint y, uint color) {
 }
 
 void fillRect(uint x, uint y, uint w, uint l, uint color) {
-	uint i, j;
+	static uint i, j;
 	setWindow(x, y, x+w-1, y+l-1);
 
 	PORTD |= D_C;	// Sending Data
@@ -186,10 +194,17 @@ void fillRect(uint x, uint y, uint w, uint l, uint color) {
 	PORTD |= SCE;	// Disable LCD SPI
 }
 
+void setTextColor(uint color) {
+	Text_Color = color;
+	return;
+}
+
 void printCharGFX(uint x, uint y, char a, uint color) {
-	uint i, j, k;
-	char temp;
+	static uint i, j, k;
+	static char temp;
 	setWindow(x, y, x+5, y+7);
+
+	fillRect(x, y, charWidth+1, charHeight, Background_Color);	// Erase background
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 6; j++) {
@@ -205,18 +220,40 @@ void printCharGFX(uint x, uint y, char a, uint color) {
 	}
 }
 
-void printStrGFX(uint x, uint y, char * str, uint color) {
-	uint i = 0, j = 0;
-	char gapX = ColMax%charWidth, gapY = RowMax%charHeight;		// Gaps where character won't fit
+void printStrGFX(uint x, uint y, char* str, uint color) {
+	static uint i, j;
+	static char gapX, gapY;
+	i = 0; j = 0;
+	gapX = ColMax%charWidth; gapY = RowMax%charHeight;		// Gaps where character won't fit
 	while (str[j]) {	// While not NULL byte
 		if ((str[j] >= 0x20) && (str[j] < 0X80))	// Print character
-			printCharGFX((x + i*6)%(ColMax-gapX), (y + (i/charX)*8)%(RowMax-gapY), str[j], color);
+			printCharGFX((x + i*charWidth)%(ColMax-gapX), (y + (i/charX)*charHeight)%(RowMax-gapY), str[j], color);
 		if (str[j] == '\t')		// Indents 4 spaces
 			i += 2;
 		if (str[j] == '\n')		// Moves to next line
 			i = ((((i/charX)+1)*charX) - 1);
 		i++; j++;
 	}
+	LCD_Cursor = i + x + y*charX;
+	return;
+}
+
+void printString(char* str) {
+	static uint color, i, j, x, y;
+	static char gapX, gapY;
+	color = Text_Color; i = LCD_Cursor; j = 0; x = 0; y = 0;
+	gapX = ColMax%charWidth; gapY = RowMax%charHeight;		// Gaps where character won't fit
+	while (str[j]) {	// While not NULL byte
+		if ((str[j] >= 0x20) && (str[j] < 0X80))	// Print character
+			printCharGFX((x + i*charWidth)%(ColMax-gapX), (y + (i/charX)*charHeight)%(RowMax-gapY), str[j], color);
+		if (str[j] == '\t')		// Indents 4 spaces
+			i += 2;
+		if (str[j] == '\n')		// Moves to next line
+			i = ((((i/charX)+1)*charX) - 1);
+		i++; j++;
+	}
+	LCD_Cursor = i;
+	return;
 }
 
 //-------------LCD functions--------------------//

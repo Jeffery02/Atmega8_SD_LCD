@@ -7,14 +7,16 @@
 #include "GFX_ASCII.h"	// ASCII table for GFX LCDs
 
 // Function Prototypes
-void initGFX();
+void initGFX(uint);
 void outGFX(char, char);
 void setWindow(uint, uint, uint, uint);
 uint RGBto16(char, char, char);
 void setPixel(uint, uint, uint);
 void fillRect(uint, uint, uint, uint, uint);
+void setTextColor(uint);
 void printCharGFX(uint, uint, char, uint);
 void printStrGFX(uint, uint, char*, uint);
+void printString(char*);
 
 // Function Definitions
 #define print 0
@@ -41,3 +43,6 @@ void printStrGFX(uint, uint, char*, uint);
 #define MAGENTA 0xF81F 
 #define CYAN    0x07FF
 #define WHITE   0xFFFF
+
+extern uint LCD_Cursor;
+extern uint Background_Color;

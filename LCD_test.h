@@ -2,7 +2,7 @@
 #define uint	unsigned int
 
 // Clock Frequency
-#define F_CPU 16000000
+#define F_CPU 20000000
 
 // Required Libraries
 #include <avr/io.h>
@@ -12,7 +12,9 @@
 
 // Function Prototypes
 void initialize();
-
+void itoa(uint, char*);
+void htoa(char, char*);
+uint getADC(char);
 
 // Function Definitions
 
